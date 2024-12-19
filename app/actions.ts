@@ -2,72 +2,114 @@
 
 import { createClient } from '@/utils/supabase/server'; // init supabase
 import {v4 as uuid4} from 'uuid';
+import { headers } from 'next/headers';
+import {redirect} from 'next/navigation';
+import { LogIn } from 'lucide-react';
 // import { cookies, headers } from "next/headers"; // cookies already use to initialize server supabase
 
 
 export interface NotificationRes {
-  success:boolean,
-  message: string
+  success?:boolean,
+  message?: string,
+  others?:string
 }
 
 
-export async function signUp(
-  prevState:any, 
-  formData:FormData):Promise<NotificationRes> {
+export async function registerAction(
+  prevState:any,
+  formData:FormData
+):Promise<NotificationRes>{
   try{
     const fullname = formData.get('name') as string;
     const email = formData.get('email') as string;
     const tel = formData.get('tel') as string;
+    const attachment = formData.get('attachment') as File;
 
-    // Get file from formData type file name 'attachment'
-    const attachment = formData.get('attachment') as File; 
-
-    // Validate required fields
+    // Validate input form
     if(!fullname || !email){
-      throw new Error('Missing required fields: fullname,email ')
+      return {success:false, message:"Fullname and email is required"}
+    }
+    // Validate email form
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      return {success:false, message:"Invalid email form"}
     }
 
-    console.log('fullname:', fullname);
-    console.log('email:', email);
-    console.log('tel:', tel);
-    console.log('fileName:', attachment.name);
-
-    // Initialize Supabase client
-    const supabase = await createClient(); 
-    // console.log(supabase);
-
-    // Use uuid4 for file name because supabase storage cannot upload same file name
+    // console.log(fullname,email,tel,attachment)
+    
+    // Create file name with uuid4
     const fileName = uuid4();
 
-    // Upload file to storage supabase (standard upload)
-    const {data:dataFile, error:uploadError} = await supabase.storage.from('attachments').upload(fileName,attachment);
-    
+    // initialize supabase
+    const supabase = await createClient();
+
+    // Upload attactment to supabase stroage
+    const {data:uploadFile, error:uploadError} = await supabase.storage.from('attachments').upload(fileName,attachment) ;
+
+    // Handle upload error
     if(uploadError){
-      console.log(uploadError.message);
-      throw new Error('Fail to upload file');
+      return {success:false,message:uploadError.message};
     }
-    console.log(dataFile);
 
-    // Get public URL to store path in table 'users' which ref to supabase storage 
+    // Get public URL from Supabase storage to store in table 'user' which url ref to path data
     const {data:attachmentURL} = supabase.storage.from('attachments').getPublicUrl(fileName);
-    console.log(attachmentURL);
 
-    // Insert data to supabase table with 4 fields
-    const {data:dataInsert,error:insertError} = await supabase.from('users').insert([
-      {
-        fullname,
-        email,
-        tel,
-        attachment: attachmentURL.publicUrl,
-      }
-    ]);
+    // Insert data to table 'users'
+    const {data:insertData , error:insertError} = await supabase.from('users').insert([{
+      fullname,
+      email,
+      tel,
+      attachment: attachmentURL.publicUrl
+    }
+    ])
 
+    // handle insert table
     if(insertError){
-      console.log(insertError.message);
-      throw new Error(insertError.message);
-    };
+      return {success:false,message:insertError.message};
+    }
+    // If insert success
+    // console.log("insertData:",insertData);
 
-    return {success:true, message: 'Register Successfully'} ;
+    return {success:true, message:'Register successfully'}
+
+  }catch(error){
+    const errorRes = error instanceof Error ? error.message : error as string ;
+    return {success:false, message:errorRes}
+  }
+}
+
+export async function signUpAction(
+  prevState:any, 
+  formData:FormData):Promise<NotificationRes> {
+  try{
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const origin = (await headers()).get('origin');
+
+    console.log(email, password)
+    // Validate input and password
+    // if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    //   return
+    // }
+
+    // initialize supabase
+    const supabase = await createClient();
+
+    // Signup (Authentication)
+    let {data:userLogin, error:signUpError} = await supabase.auth.signUp({
+      email,
+      password,
+      options:{
+        emailRedirectTo:`${origin}/auth/callback`,
+      }
+    })
+
+    if(signUpError){
+      console.log(signUpError.message);
+    }
+
+    console.log('Sign up successfully')
+    
+    return {success:true, message: 'Sign up Successfully'} ;
 
   }catch(error){
     if(error instanceof Error){ 
@@ -83,13 +125,15 @@ export async function signUp(
   }
 
 
-export async function signIn(
+export async function signInAction(
   prevState:any, 
   formData:FormData): Promise<NotificationRes> {
 
   try{
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const origin = (await headers()).get('origin');
+
     console.log(`email:${email} | password:${password}`);
 
     // Validate input Form (server side)
@@ -106,23 +150,46 @@ export async function signIn(
     // Authenticate users 
     const {data:userData,error:errorLogin} = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
+      
     })
 
-    // Handle error if login fail
+    // Handle login error
     if(errorLogin){
       console.log('Error Login:',errorLogin);
       throw new Error(errorLogin.message);
     }
     
     // If Login success
-    console.log("user:",userData);
-
-
-    return {success:true, message:''}
+    console.log(`Login Successfully`);
+    
+    redirect(`/protected`);
+    
+    // return {success:true, message:''}
+    
 
   }catch(error){
     const errorRes = error instanceof Error ? error.message : error as string;
     return {success: false, message: errorRes }
+  }
+}
+
+export async function signOutAction(){
+  try{
+    // Initialize supabase 
+    const supabase = await createClient();
+    
+    // SignOut 
+    let {error:SignOutError} = await supabase.auth.signOut();
+
+    if(SignOutError){
+      console.log('ERROR Signout')
+    }
+    redirect('/sign-in');
+    
+
+  }catch(error){
+    const errorRes = error instanceof Error ? error.message : error as string;
+    console.log(errorRes);
   }
 }

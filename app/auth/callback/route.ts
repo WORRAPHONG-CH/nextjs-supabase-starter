@@ -10,7 +10,9 @@ export async function GET(request: Request) {
   const origin = requestUrl.origin;
   const redirectTo = requestUrl.searchParams.get("redirect_to")?.toString();
 
+  console.log('==== AUTH CALLBACK ====')
   console.log('req url', requestUrl)
+  console.log('redirect to:',redirectTo);
   console.log('routes:',code);
   const supabase = await createClient();
   if (code) {

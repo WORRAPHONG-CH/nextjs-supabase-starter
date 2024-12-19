@@ -5,6 +5,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { createClient } from "@/utils/supabase/server";
 import NextLogo from "./next-logo";
+import { signOutAction } from "@/app/actions";
 
 export default async function AuthButton() {
   const supabase = await createClient();
@@ -12,6 +13,8 @@ export default async function AuthButton() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  // console.log('sign out:',user)
+
 
   // if has no env.local file
   if (!hasEnvVars) {
@@ -54,19 +57,25 @@ export default async function AuthButton() {
   return user ? (
     // if user exists?
     <div className="flex items-center gap-4">
-      Hey, {user.email}!
+      Welcome, {user.email}!
       {/* <form action={signOutAction}> */}
-        <Button type="submit" variant={"outline"}>
+      <form action={signOutAction}>
+        <Button type="submit" variant={"outline"} >
           Sign out
         </Button>
+      </form>
+        
       {/* </form> */}
     </div>
   ) : (
     // if user not exist ( not sign in yet)
     <div className="flex gap-3">
+      <Button asChild size="sm" variant={"outline"}>
+        <Link href="/sign-up">Sign up</Link>
+      </Button>
       
       <Button asChild size="sm" variant={"default"}>
-        <Link href="/sign-up">Register</Link>
+        <Link href="/sign-in">Sign in</Link>
       </Button>
     </div>
   );
