@@ -17,6 +17,7 @@
   <a href="#more-supabase-examples"><strong>More Examples</strong></a>
 </p>
 <br/>
+
 ## Introduction
 
 This project is a starter kit for building applications with Next.js and Supabase. It includes authentication, file uploads, and user management functionalities. The project is designed to be a quick and efficient way to get started with building full-stack applications using these technologies.
