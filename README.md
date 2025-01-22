@@ -1,3 +1,4 @@
+# Next.js and Supabase Authentication and File Upload 
 <a href="https://demo-nextjs-with-supabase.vercel.app/">
   <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
   <h1 align="center">Next.js and Supabase Starter Kit</h1>
@@ -16,6 +17,22 @@
   <a href="#more-supabase-examples"><strong>More Examples</strong></a>
 </p>
 <br/>
+## Introduction
+
+This project is a starter kit for building applications with Next.js and Supabase. It includes authentication, file uploads, and user management functionalities. The project is designed to be a quick and efficient way to get started with building full-stack applications using these technologies.
+
+## Technology Used
+
+### Frontend
+- **Next.js**: A React framework for building server-side rendered and static web applications.
+- **React**: A JavaScript library for building user interfaces.
+- **Tailwind CSS**: A utility-first CSS framework for rapid UI development.
+- **shadcn/ui**: A component library for building user interfaces.
+
+### Backend
+- **Supabase**: An open-source Firebase alternative that provides authentication, database, and storage services.
+- **Supabase SSR**: A package to configure Supabase Auth to use cookies for server-side rendering.
+
 
 ## Features
 
@@ -25,12 +42,13 @@
   - Middleware
   - Client
   - Server
-  - It just works!
 - supabase-ssr. A package to configure Supabase Auth to use cookies
 - Styling with [Tailwind CSS](https://tailwindcss.com)
 - Components with [shadcn/ui](https://ui.shadcn.com/)
 - Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
   - Environment variables automatically assigned to Vercel project
+ 
+
 
 ## Demo
 
